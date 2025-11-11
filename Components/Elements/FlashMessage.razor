@@ -1,0 +1,27 @@
+﻿@inject BlazorApp.Services.Interfaces.IFlashMessage FlashMessageService
+@inject IJSRuntime JSRuntime
+
+@if (!string.IsNullOrEmpty(FlashMessageService.Message))
+{
+    <div id="flashToast" class="alert @FlashMessageService.CssClass alert-dismissible fade show mx-4 mt-4" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>@FlashMessageService.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" @onclick="ClearMessage"></button>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        FlashMessageService.OnMessageChanged += StateHasChanged;
+    }
+
+    private void ClearMessage()
+    {
+        FlashMessageService.Clear();
+    }
+
+    public void Dispose()
+    {
+        FlashMessageService.OnMessageChanged -= StateHasChanged;
+    }
+}

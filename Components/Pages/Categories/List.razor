@@ -1,0 +1,153 @@
+﻿@page "/categorias"
+
+@using BlazorApp.Components.Layout
+@using BlazorApp.Components.Elements
+
+@inject CategoryViewModel CategoryViewModel
+
+@rendermode InteractiveServer
+
+<Sidebar />
+
+<div class="content">
+    <Navbar />
+
+    <FlashMessage />
+
+    @if (CategoryViewModel.IsBusy)
+    {
+        <Spinner />
+    }
+    else
+    {
+        <div class="container-fluid px-4 pt-4">
+            <div class="row g-4">
+                <div class="col-sm-12 col-xl-8">
+                    <div class="bg-secondary h-100 rounded p-4">
+                        <div class="title mb-3">
+                            <h6 class="mb-0">Lista de Categorias</h6>
+                            <a href="/categorias/novo" class="btn btn-success">
+                                <i class="bi bi-plus-circle me-1"></i> Adicionar
+                            </a>
+                        </div>
+
+                        <table class="table-hover table-striped text-light table align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">#</th>
+                                    <th>Nome da Categoria</th>
+                                    <th style="width: 200px;">Ações</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @if (CategoryViewModel.Categories.Any())
+                                {
+                                    @foreach (var c in CategoryViewModel.Categories)
+                                    {
+                                        <tr>
+                                            <td>@c.Id</td>
+                                            <td>@c.Name</td>
+                                            <td>
+                                                <button class="btn btn-info btn-sm me-2" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" title="Excluir">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-light-50 text-center">
+                                            Nenhuma categoria encontrada.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        @if (CategoryViewModel.TotalPages > 1)
+                        {
+                            <div class="btn-toolbar justify-content-center" role="toolbar">
+                                <div class="btn-group">
+                                    <button type="button"
+                                            class="btn btn-outline-light"
+                                            @onclick="PrevPage"
+                                            disabled="@(!CategoryViewModel.CanGoPrev)">
+                                        «
+                                    </button>
+
+                                    @foreach (var pageNumber in CategoryViewModel.GetPageNumbers())
+                                    {
+                                        <button type="button"
+                                                class="btn @(pageNumber == CategoryViewModel.CurrentPage ? "btn-primary" : "btn-outline-primary")"
+                                                @onclick="() => GoToPage(pageNumber)">
+                                            @pageNumber
+                                        </button>
+                                    }
+
+                                    <button type="button"
+                                            class="btn btn-outline-light"
+                                            @onclick="NextPage"
+                                            disabled="@(!CategoryViewModel.CanGoNext)">
+                                        »
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="text-light small mt-2 text-center">
+                                Página @CategoryViewModel.CurrentPage de @CategoryViewModel.TotalPages
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table th, .table td {
+        color: white !important;
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        CategoryViewModel.OnChange += StateHasChanged;
+        await CategoryViewModel.LoadAsync(1);
+    }
+
+    private async Task PrevPage() 
+    {
+        if (CategoryViewModel.CanGoPrev)
+            await CategoryViewModel.LoadAsync(CategoryViewModel.CurrentPage - 1);
+    }
+
+    private async Task NextPage()
+    {
+        if (CategoryViewModel.CanGoNext)
+            await CategoryViewModel.LoadAsync(CategoryViewModel.CurrentPage + 1);
+    }
+
+    private async Task GoToPage(int pageNumber)
+    {
+        await CategoryViewModel.LoadAsync(pageNumber);
+    }
+
+    public void Dispose()
+    {
+        CategoryViewModel.OnChange -= StateHasChanged;
+    }
+}

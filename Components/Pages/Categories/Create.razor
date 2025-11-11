@@ -1,0 +1,64 @@
+﻿@page "/categorias/novo"
+
+@using BlazorApp.Components.Layout
+@using BlazorApp.Components.Elements
+@using BlazorApp.Database.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using BlazorApp.Components.Pages.Categories.Forms
+
+@inject CategoryViewModel CategoryViewModel
+
+@rendermode InteractiveServer
+
+<Sidebar />
+
+<div class="content">
+    <Navbar />
+
+    <FlashMessage />
+
+    @if (CategoryViewModel.IsBusy)
+    {
+        <Spinner />
+    }
+    else
+    {
+        <div class="container-fluid px-4 pt-4">
+            <div class="row g-4">
+                <div class="col-sm-12 col-xl-6">
+                    <div class="bg-secondary h-100 rounded p-4">
+                        <h6 class="mb-4">Cadastro de Categoria</h6>
+
+                        <EditForm Model="@createCategoryForm" OnValidSubmit="CreateAsync">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label for="inputNameVM" class="form-label">Informe o nome da categoria</label>
+                                <InputText id="inputNameVM" class="form-control" @bind-Value="createCategoryForm.Name" />
+                                <ValidationMessage For="@(() => createCategoryForm.Name)" class="text-primary" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Salvar (ViewModel)</button>
+                        </EditForm>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private CreateCategoryForm createCategoryForm = new();
+
+    private async Task CreateAsync()
+    {
+        await CategoryViewModel.CreateAsync(createCategoryForm);
+        RefreshForm();
+    }
+
+    private void RefreshForm()
+    {
+        createCategoryForm = new();
+    }
+}

@@ -1,0 +1,17 @@
+﻿@using BlazorApp.Components.Layout
+
+<ImportMap />
+<HeadOutlet />
+
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+    </Found>
+
+    <NotFound>
+        <PageTitle>Página não encontrada</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p class="text-danger">Desculpe, a página não existe.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
