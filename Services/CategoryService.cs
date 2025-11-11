@@ -1,4 +1,5 @@
-﻿using BlazorApp.Database.Interfaces;
+﻿using BlazorApp.Components.Pages.Categories.Forms;
+using BlazorApp.Database.Interfaces;
 using BlazorApp.Database.Models;
 using BlazorApp.Services.Interfaces;
 
@@ -18,23 +19,41 @@ namespace BlazorApp.Services
             await _categoryRepository.CreateAsync(category);
         }
 
-        public async Task<(IEnumerable<Category> Items, int TotalCount)> GetAllAsync(int page, int pageSize)
+        public async Task DeleteAsync(int id)
         {
-            var (categories, total) = await _categoryRepository.GetAllAsync(page, pageSize);
+            Category? category = await _categoryRepository.GetByIdAsync(id);
 
-            IEnumerable<Category> categoryList = categories.Select(c => new Category
+            if (category != null)
             {
-                Id = c.Id,
-                Name = c.Name,
-            });
+                await _categoryRepository.DeleteAsync(category);
+            }
+        }
 
-            return (categoryList, total);
+        public async Task<(IEnumerable<Category> Items, int TotalCount)> GetAllAsync(int page, int pageSize, string? search = null)
+        {
+            return await _categoryRepository.GetAllAsync(page, pageSize, search);
+        }
+
+        public async Task<Category?> GetByIdAsync(int id)
+        {
+            return await _categoryRepository.GetByIdAsync(id);
         }
 
         public async Task<bool> GetByNameAsync(string name)
         {
             Category? category = await _categoryRepository.GetByNameAsync(name);
             return category != null ? true : false; 
+        }
+
+        public async Task UpdateAsync(int id, UpdateCategoryForm updateCategoryForm)
+        {
+            Category? category = await _categoryRepository.GetByIdAsync(id);
+
+            if ( category != null)
+            {
+                category.Name = updateCategoryForm.Name;
+                await _categoryRepository.UpdateAsync(category);
+            }
         }
     }
 }

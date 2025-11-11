@@ -2,6 +2,7 @@
 
 @using BlazorApp.Components.Layout
 @using BlazorApp.Components.Elements
+@using BlazorApp.Database.Models
 
 @inject CategoryViewModel CategoryViewModel
 
@@ -26,10 +27,15 @@
                     <div class="bg-secondary h-100 rounded p-4">
                         <div class="title mb-3">
                             <h6 class="mb-0">Lista de Categorias</h6>
-                            <a href="/categorias/novo" class="btn btn-success">
-                                <i class="bi bi-plus-circle me-1"></i> Adicionar
-                            </a>
+
+                            <a href="/categorias/novo" class="btn btn-success">Adicionar</a>
                         </div>
+
+                        <input type="text"
+                               class="form-control bg-dark text-light border-secondary"
+                               placeholder="Buscar categoria..."
+                               value="@searchTerm"
+                               @oninput="HandleSearch" />
 
                         <table class="table-hover table-striped text-light table align-middle">
                             <thead>
@@ -49,10 +55,14 @@
                                             <td>@c.Id</td>
                                             <td>@c.Name</td>
                                             <td>
-                                                <button class="btn btn-info btn-sm me-2" title="Editar">
+                                                <a href="/categorias/editar/@c.Id" class="btn btn-info btn-sm me-2" title="Editar">
                                                     <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <button class="btn btn-danger btn-sm" title="Excluir">
+                                                </a>
+
+                                                <button type="button"
+                                                        @onclick="() => DeleteCategory(c.Id)"
+                                                        class="btn btn-danger btn-sm"
+                                                        title="Excluir">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </td>
@@ -123,10 +133,18 @@
 </style>
 
 @code {
+    private string searchTerm = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         CategoryViewModel.OnChange += StateHasChanged;
         await CategoryViewModel.LoadAsync(1);
+    }
+
+    private async Task HandleSearch(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? string.Empty;
+        await CategoryViewModel.LoadAsync(1, searchTerm);
     }
 
     private async Task PrevPage() 
@@ -144,6 +162,12 @@
     private async Task GoToPage(int pageNumber)
     {
         await CategoryViewModel.LoadAsync(pageNumber);
+    }
+
+    private async Task DeleteCategory(int id)
+    {
+        await CategoryViewModel.DeleteAsync(id);
+        await CategoryViewModel.LoadAsync(1);
     }
 
     public void Dispose()

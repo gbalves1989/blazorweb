@@ -1,5 +1,89 @@
-﻿<h3>Edit</h3>
+﻿@page "/categorias/editar/{id:int}"
+
+@using BlazorApp.Components.Layout
+@using BlazorApp.Components.Elements
+@using BlazorApp.Database.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using BlazorApp.Components.Pages.Categories.Forms
+
+@inject CategoryViewModel CategoryViewModel
+@inject NavigationManager Navigation
+
+@rendermode InteractiveServer
+
+<Sidebar />
+
+<div class="content">
+    <Navbar />
+
+    <FlashMessage />
+
+    @if (CategoryViewModel.IsBusy)
+    {
+        <Spinner />
+    }
+    else
+    {
+        <div class="container-fluid px-4 pt-4">
+            <div class="row g-4">
+                <div class="col-sm-12 col-xl-6">
+                    <div class="bg-secondary h-100 rounded p-4">
+                        <h6 class="mb-4">Edição de Categoria</h6>
+
+                        <EditForm Model="@updateCategoryForm" OnValidSubmit="UpdateAsync">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label for="inputNameVM" class="form-label">Informe o nome da categoria</label>
+                                <InputText id="inputNameVM" class="form-control" @bind-Value="updateCategoryForm.Name" />
+                                <ValidationMessage For="@(() => updateCategoryForm.Name)" class="text-primary" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Salvar</button>
+                            <button type="button" class="btn btn-outline-light ms-2" @onclick="GoBack">Voltar</button>
+                        </EditForm>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
+    [Parameter]
+    public int id { get; set; }
 
+    private UpdateCategoryForm updateCategoryForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        CategoryViewModel.OnChange += StateHasChanged;
+        Category? category = await CategoryViewModel.GetByIdAsync(id);
+
+        if (category != null)
+        {
+            updateCategoryForm.Name = category.Name;
+        }
+        else
+        {
+            await Task.Delay(1);
+            Navigation.NavigateTo("/not-found");
+        }
+    }
+
+    private async Task UpdateAsync()
+    {
+        await CategoryViewModel.UpdateAsync(id, updateCategoryForm);
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/categorias");
+    }
+
+    public void Dispose()
+    {
+        CategoryViewModel.OnChange -= StateHasChanged;
+    }
 }

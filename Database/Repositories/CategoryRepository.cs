@@ -19,23 +19,46 @@ namespace BlazorApp.Database.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<(IEnumerable<Category> Items, int TotalCount)> GetAllAsync(int page, int pageSize)
+        public async Task DeleteAsync(Category category)
         {
-            int total = await _context.Categories.CountAsync();
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+        }
 
-            var items = await _context.Categories
+        public async Task<(IEnumerable<Category> Items, int TotalCount)> GetAllAsync(int page, int pageSize, string? search = null)
+        {
+            var query = _context.Categories.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(c => c.Name.ToLower().Contains(search.ToLower()));
+            }
+
+            var total = await query.CountAsync();
+
+            var items = await query
                 .OrderBy(c => c.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .AsNoTracking()
                 .ToListAsync();
 
             return (items, total);
         }
 
+        public async Task<Category?> GetByIdAsync(int id)
+        {
+            return await _context.Categories.Where(c => c.Id == id).FirstOrDefaultAsync();
+        }
+
         public async Task<Category?> GetByNameAsync(string name)
         {
             return await _context.Categories.FirstOrDefaultAsync(c => c.Name == name);
+        }
+
+        public async Task UpdateAsync(Category category)
+        {
+            _context.Categories.Update(category);
+            await _context.SaveChangesAsync();
         }
     }
 }
